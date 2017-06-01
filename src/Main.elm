@@ -2,8 +2,10 @@ module Main exposing (..)
 
 import Html exposing (Html, div, text, input)
 import Html.Attributes exposing (placeholder)
-import Char
+import Html.Events exposing (onInput)
 import Json.Decode as D
+import Dict exposing (Dict)
+import Char
 
 
 -- MODEL
@@ -17,6 +19,10 @@ type alias Entry =
     { widget : Widget
     , name : String
     }
+
+
+type alias Model =
+    Dict String String
 
 
 json : String
@@ -57,13 +63,9 @@ entryDecoder =
             (D.field "name" D.string)
 
 
-type alias Model =
-    {}
-
-
 init : ( Model, Cmd Msg )
 init =
-    {} ! []
+    Dict.empty ! []
 
 
 
@@ -72,6 +74,7 @@ init =
 
 type Msg
     = NoOp
+    | Update String String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -79,6 +82,10 @@ update msg model =
     case msg of
         NoOp ->
             model ! []
+
+        Update key value ->
+            Dict.update key (always <| Just value) model
+                ! []
 
 
 
@@ -96,15 +103,21 @@ capitalize str =
 
 
 coolInput : Entry -> Html Msg
-coolInput e =
-    div [] [ input [ placeholder <| capitalize e.name ] [] ]
+coolInput entry =
+    div []
+        [ input
+            [ placeholder <| capitalize entry.name
+            , onInput <| Update entry.name
+            ]
+            []
+        ]
 
 
 widget : Entry -> Html Msg
-widget e =
-    case e.widget of
+widget entry =
+    case entry.widget of
         Input ->
-            coolInput e
+            coolInput entry
 
 
 view : Result String (List Entry) -> Model -> Html Msg
