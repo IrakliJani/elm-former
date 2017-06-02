@@ -1,24 +1,16 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, text, input)
+import Html exposing (Html, div, text, input, pre)
 import Html.Attributes exposing (placeholder)
 import Html.Events exposing (onInput)
-import Json.Decode as D
 import Dict exposing (Dict)
-import Char
+import Types exposing (Widget(Input), Entry)
+import Decoders exposing (decodeDeclaration)
+import Encoders exposing (encodeJson)
+import Helpers exposing (capitalize)
 
 
 -- MODEL
-
-
-type Widget
-    = Input
-
-
-type alias Entry =
-    { widget : Widget
-    , name : String
-    }
 
 
 type alias Model =
@@ -41,28 +33,6 @@ json =
     """
 
 
-declarationDecoder : String -> Result String (List Entry)
-declarationDecoder =
-    D.decodeString (D.list entryDecoder)
-
-
-entryDecoder : D.Decoder Entry
-entryDecoder =
-    let
-        toWidget : String -> D.Decoder Widget
-        toWidget s =
-            case s of
-                "input" ->
-                    D.succeed <| Input
-
-                _ ->
-                    D.fail <| "unknown widget type: " ++ s
-    in
-        D.map2 Entry
-            (D.field "type" D.string |> D.andThen toWidget)
-            (D.field "name" D.string)
-
-
 init : ( Model, Cmd Msg )
 init =
     Dict.empty ! []
@@ -73,16 +43,12 @@ init =
 
 
 type Msg
-    = NoOp
-    | Update String String
+    = Update String String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            model ! []
-
         Update key value ->
             Dict.update key (always <| Just value) model
                 ! []
@@ -90,16 +56,6 @@ update msg model =
 
 
 -- VIEW
-
-
-capitalize : String -> String
-capitalize str =
-    case String.toList str of
-        c :: cs ->
-            String.fromList <| Char.toUpper c :: cs
-
-        [] ->
-            ""
 
 
 coolInput : Entry -> Html Msg
@@ -122,13 +78,21 @@ widget entry =
 
 view : Result String (List Entry) -> Model -> Html Msg
 view declaration model =
-    div [] <|
-        case declaration of
-            Ok d ->
-                List.map widget d
+    let
+        json =
+            encodeJson model
+    in
+        div
+            []
+            [ div [] <|
+                case declaration of
+                    Ok d ->
+                        List.map widget d
 
-            Err e ->
-                [ text <| "Error parsing json: " ++ e ]
+                    Err e ->
+                        [ text <| "Error parsing json: " ++ e ]
+            , pre [] [ text json ]
+            ]
 
 
 
@@ -139,7 +103,7 @@ main : Program Never Model Msg
 main =
     let
         declaration =
-            declarationDecoder json
+            decodeDeclaration json
     in
         Html.program
             { init = init
