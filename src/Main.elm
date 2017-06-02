@@ -21,28 +21,28 @@ type alias Model =
 json : String
 json =
     """
-        [
-            {
-                "widget": "input",
-                "key": "username",
-                "placeholder": "Username"
-            },
-            {
-                "widget": "input",
-                "key": "password",
-                "placeholder": "Password"
-            },
-            {
-                "widget": "textarea",
-                "key": "about",
-                "placeholder": "About me"
-            },
-            {
-                "widget": "checkbox",
-                "key": "agreed",
-                "placeholder": "I agree"
-            }
-        ]
+[
+    {
+        "widget": "input",
+        "key": "username",
+        "placeholder": "Username"
+    },
+    {
+        "widget": "input",
+        "key": "password",
+        "placeholder": "Password"
+    },
+    {
+        "widget": "textarea",
+        "key": "about",
+        "placeholder": "About me"
+    },
+    {
+        "widget": "checkbox",
+        "key": "agreed",
+        "placeholder": "I agree"
+    }
+]
     """
 
 
@@ -118,7 +118,8 @@ view model =
     in
         div []
             [ widgets <| declaration
-            , jsonView <| encodedJson
+            , jsonView "Output JSON" <| encodedJson
+            , jsonView "Schema JSON" <| json
             ]
 
 
