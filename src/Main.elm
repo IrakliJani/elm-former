@@ -8,6 +8,9 @@ import Types exposing (Widget(..), Entry)
 import Decoders exposing (decodeDeclaration)
 import Encoders exposing (encodeJson)
 import Helpers exposing ((=>))
+import Widget.Input
+import Widget.Textarea
+import Widget.Checkbox
 
 
 -- MODEL
@@ -70,67 +73,29 @@ update msg model =
 -- VIEW
 
 
-maybePlaceholder p =
-    placeholder <| Maybe.withDefault "" p
-
-
-coolInput : Entry -> Html Msg
-coolInput entry =
-    let
-        update key value =
-            Update key (Input value)
-    in
-        div []
-            [ input
-                [ maybePlaceholder <| entry.placeholder
-                , onInput <| update entry.key
-                ]
-                []
-            ]
-
-
-coolTextarea : Entry -> Html Msg
-coolTextarea entry =
-    let
-        update key value =
-            Update key (Textarea value)
-    in
-        div []
-            [ textarea
-                [ maybePlaceholder <| entry.placeholder
-                , onInput <| update entry.key
-                ]
-                []
-            ]
-
-
-coolCheckbox : Entry -> Html Msg
-coolCheckbox entry =
-    let
-        update key value =
-            Update key (Checkbox value)
-    in
-        div []
-            [ input
-                [ maybePlaceholder <| entry.placeholder
-                , type_ "checkbox"
-                , onCheck <| update entry.key
-                ]
-                []
-            ]
-
-
 widget : Entry -> Html Msg
 widget entry =
     case entry.widget of
         Input data ->
-            coolInput entry
+            let
+                update value =
+                    Update entry.key (Input value)
+            in
+                Widget.Input.view update entry
 
         Textarea data ->
-            coolTextarea entry
+            let
+                update value =
+                    Update entry.key (Textarea value)
+            in
+                Widget.Textarea.view update entry
 
         Checkbox data ->
-            coolCheckbox entry
+            let
+                update value =
+                    Update entry.key (Checkbox value)
+            in
+                Widget.Checkbox.view update entry
 
 
 widgets : Result String (List Entry) -> Html Msg
