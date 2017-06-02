@@ -1,20 +1,20 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, text, input, pre)
-import Html.Attributes exposing (style, placeholder)
-import Html.Events exposing (onInput)
+import Html exposing (Html, div, text, pre, input, textarea)
+import Html.Attributes exposing (style, placeholder, type_)
+import Html.Events exposing (onInput, onCheck)
 import Dict exposing (Dict)
-import Types exposing (Widget(Input), Entry)
+import Types exposing (Widget(..), Entry)
 import Decoders exposing (decodeDeclaration)
 import Encoders exposing (encodeJson)
-import Helpers exposing ((=>), capitalize)
+import Helpers exposing ((=>))
 
 
 -- MODEL
 
 
 type alias Model =
-    Dict String String
+    Dict String Widget
 
 
 json : String
@@ -22,12 +22,24 @@ json =
     """
         [
             {
-                "type": "input",
-                "name": "username"
+                "widget": "input",
+                "key": "username",
+                "placeholder": "Username"
             },
             {
-                "type": "input",
-                "name": "password"
+                "widget": "input",
+                "key": "password",
+                "placeholder": "Password"
+            },
+            {
+                "widget": "textarea",
+                "key": "about",
+                "placeholder": "About me"
+            },
+            {
+                "widget": "checkbox",
+                "key": "agreed",
+                "placeholder": "I agree"
             }
         ]
     """
@@ -43,7 +55,7 @@ init =
 
 
 type Msg
-    = Update String String
+    = Update String Widget
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -58,22 +70,67 @@ update msg model =
 -- VIEW
 
 
+maybePlaceholder p =
+    placeholder <| Maybe.withDefault "" p
+
+
 coolInput : Entry -> Html Msg
 coolInput entry =
-    div []
-        [ input
-            [ placeholder <| capitalize entry.name
-            , onInput <| Update entry.name
+    let
+        update key value =
+            Update key (Input value)
+    in
+        div []
+            [ input
+                [ maybePlaceholder <| entry.placeholder
+                , onInput <| update entry.key
+                ]
+                []
             ]
-            []
-        ]
+
+
+coolTextarea : Entry -> Html Msg
+coolTextarea entry =
+    let
+        update key value =
+            Update key (Textarea value)
+    in
+        div []
+            [ textarea
+                [ maybePlaceholder <| entry.placeholder
+                , onInput <| update entry.key
+                ]
+                []
+            ]
+
+
+coolCheckbox : Entry -> Html Msg
+coolCheckbox entry =
+    let
+        update key value =
+            Update key (Checkbox value)
+    in
+        div []
+            [ input
+                [ maybePlaceholder <| entry.placeholder
+                , type_ "checkbox"
+                , onCheck <| update entry.key
+                ]
+                []
+            ]
 
 
 widget : Entry -> Html Msg
 widget entry =
     case entry.widget of
-        Input ->
+        Input data ->
             coolInput entry
+
+        Textarea data ->
+            coolTextarea entry
+
+        Checkbox data ->
+            coolCheckbox entry
 
 
 widgets : Result String (List Entry) -> Html Msg

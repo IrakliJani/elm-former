@@ -2,10 +2,13 @@ module Types exposing (..)
 
 
 type Widget
-    = Input
+    = Input String
+    | Textarea String
+    | Checkbox Bool
 
 
 type alias Entry =
     { widget : Widget
-    , name : String
+    , key : String
+    , placeholder : Maybe String
     }
