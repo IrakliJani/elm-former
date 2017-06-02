@@ -1,13 +1,13 @@
 module Main exposing (..)
 
 import Html exposing (Html, div, text, input, pre)
-import Html.Attributes exposing (placeholder)
+import Html.Attributes exposing (style, placeholder)
 import Html.Events exposing (onInput)
 import Dict exposing (Dict)
 import Types exposing (Widget(Input), Entry)
 import Decoders exposing (decodeDeclaration)
 import Encoders exposing (encodeJson)
-import Helpers exposing (capitalize)
+import Helpers exposing ((=>), capitalize)
 
 
 -- MODEL
@@ -76,22 +76,40 @@ widget entry =
             coolInput entry
 
 
-view : Result String (List Entry) -> Model -> Html Msg
-view declaration model =
+widgets : Result String (List Entry) -> Html Msg
+widgets declaration =
+    div [] <|
+        case declaration of
+            Ok d ->
+                List.map widget d
+
+            Err e ->
+                [ text <| "Error parsing json: " ++ e ]
+
+
+jsonView : String -> Html Msg
+jsonView json =
+    pre
+        [ style
+            [ "background" => "#EFEFEF"
+            , "padding" => "10px"
+            ]
+        ]
+        [ text json ]
+
+
+view : Model -> Html Msg
+view model =
     let
-        json =
+        declaration =
+            decodeDeclaration json
+
+        encodedJson =
             encodeJson model
     in
-        div
-            []
-            [ div [] <|
-                case declaration of
-                    Ok d ->
-                        List.map widget d
-
-                    Err e ->
-                        [ text <| "Error parsing json: " ++ e ]
-            , pre [] [ text json ]
+        div []
+            [ widgets <| declaration
+            , jsonView <| encodedJson
             ]
 
 
@@ -101,13 +119,9 @@ view declaration model =
 
 main : Program Never Model Msg
 main =
-    let
-        declaration =
-            decodeDeclaration json
-    in
-        Html.program
-            { init = init
-            , update = update
-            , view = view declaration
-            , subscriptions = always Sub.none
-            }
+    Html.program
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = always Sub.none
+        }
