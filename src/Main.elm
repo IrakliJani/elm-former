@@ -1,13 +1,11 @@
 module Main exposing (..)
 
 import Html exposing (Html, div, text, pre, input, textarea)
-import Html.Attributes exposing (style, placeholder, type_)
-import Html.Events exposing (onInput, onCheck)
 import Dict exposing (Dict)
 import Types exposing (Widget(..), Entry)
 import Decoders exposing (decodeDeclaration)
 import Encoders exposing (encodeJson)
-import Helpers exposing ((=>))
+import Views exposing (jsonView)
 import Widget.Input
 import Widget.Textarea
 import Widget.Checkbox
@@ -107,17 +105,6 @@ widgets declaration =
 
             Err e ->
                 [ text <| "Error parsing json: " ++ e ]
-
-
-jsonView : String -> Html Msg
-jsonView json =
-    pre
-        [ style
-            [ "background" => "#EFEFEF"
-            , "padding" => "10px"
-            ]
-        ]
-        [ text json ]
 
 
 view : Model -> Html Msg
